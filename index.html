@@ -1,0 +1,3306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Filipe Eckschmidt — Portfolio</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="apple-touch-icon" href="favicon.svg" />
+<meta name="theme-color" content="#ff7e87" />
+<style>
+  :root {
+    --bg: #f4f4f6;
+    --sidebar-bg: rgba(245, 245, 247, 0.72);
+    --sidebar-bg-scrolled: rgba(235, 235, 240, 0.55);
+    --text-primary: #1d1d1f;
+    --text-secondary: #5a5a60;
+    --text-tertiary: #8e8e93;
+    --accent: #007aff;
+    --hover: rgba(0, 0, 0, 0.05);
+    --active: rgba(0, 0, 0, 0.08);
+    --divider: rgba(0, 0, 0, 0.08);
+    --sidebar-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.05);
+    --sidebar-shadow-scrolled: 0 14px 60px rgba(0, 0, 0, 0.18), 0 4px 14px rgba(0, 0, 0, 0.08);
+    --radius: 24px;
+    --sidebar-width: 248px;
+    --sidebar-gap: 16px;
+    /* Right edge of the navbar in viewport coords */
+    --navbar-right: calc(var(--sidebar-gap) + var(--sidebar-width));
+    /* How many pixels of each panel sit behind the navbar */
+    --bleed: 84px;
+    /* Where each panel's left edge snaps in the viewport.
+       navbar.right - bleed → panels extend exactly --bleed behind the navbar. */
+    --snap-offset: calc(var(--navbar-right) - var(--bleed));
+    /* Panel content inner-width target */
+    --inner-max: 820px;
+    /* Horizontal padding on each side. padding-left = bleed + 56 so the
+       inner content is centered in the visible area (right of navbar). */
+    --pad-left: calc(var(--bleed) + 56px);
+    --pad-right: 56px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  /* ===== Initial site loader ===== */
+  .loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+  }
+  .loader.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .loader-mark {
+    width: 72px;
+    height: 72px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #ffb88c, #ff7e87 50%, #b48aff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    box-shadow: 0 14px 36px rgba(255, 126, 135, 0.32);
+    animation: loader-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes loader-pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 14px 36px rgba(255, 126, 135, 0.32); }
+    50% { transform: scale(1.08); box-shadow: 0 18px 44px rgba(255, 126, 135, 0.42); }
+  }
+  .loader-bar {
+    width: 140px;
+    height: 3px;
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .loader-bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    transform: translateX(-100%);
+    animation: loader-slide 1.2s ease-in-out infinite;
+  }
+  @keyframes loader-slide {
+    to { transform: translateX(100%); }
+  }
+  .loader-name {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  /* ===== Custom cursor (iPadOS-style) ===== */
+  .cursor-shape {
+    position: fixed;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.16);
+    transform: translate(-50%, -50%);
+    transition: width 0.24s cubic-bezier(.2,.8,.2,1),
+                height 0.24s cubic-bezier(.2,.8,.2,1),
+                border-radius 0.24s cubic-bezier(.2,.8,.2,1),
+                background 0.22s ease,
+                opacity 0.18s ease;
+    pointer-events: none;
+    z-index: 9998;
+    mix-blend-mode: multiply;
+  }
+  .cursor-shape.on-element {
+    background: rgba(0, 0, 0, 0.08);
+  }
+  .cursor-dot {
+    position: fixed;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.75);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 9999;
+    transition: opacity 0.15s ease, transform 0.05s linear;
+  }
+  .cursor-dot.faded { opacity: 0.55; }
+  body.cursor-hidden .cursor-shape,
+  body.cursor-hidden .cursor-dot { opacity: 0; }
+  /* Hide native cursor */
+  @media (hover: hover) and (pointer: fine) {
+    body:not(.no-custom-cursor),
+    body:not(.no-custom-cursor) * {
+      cursor: none !important;
+    }
+    body.no-custom-cursor .cursor-shape,
+    body.no-custom-cursor .cursor-dot { display: none; }
+  }
+  @media (hover: none), (pointer: coarse) {
+    .cursor-shape, .cursor-dot { display: none; }
+  }
+
+  /* ===== Scroll reveal animations ===== */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s cubic-bezier(.2,.8,.2,1), transform 0.7s cubic-bezier(.2,.8,.2,1);
+  }
+  .reveal.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-delay-1 { transition-delay: 0.06s; }
+  .reveal-delay-2 { transition-delay: 0.12s; }
+  .reveal-delay-3 { transition-delay: 0.18s; }
+  .reveal-delay-4 { transition-delay: 0.24s; }
+
+  /* Panel content animates in when panel becomes active.
+     Transform is driven by JS parallax — only opacity transitions here. */
+  .panel:not(.active) .panel-inner { opacity: 0.5; }
+  .panel .panel-inner {
+    transition: opacity 0.5s cubic-bezier(.2,.8,.2,1);
+    transition-delay: 0.04s;
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .reveal.in-view { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .panel .panel-inner, .panel:not(.active) .panel-inner { opacity: 1 !important; transform: none !important; }
+    .loader-mark, .loader-bar::after, .welcome h1 .accent-grad { animation: none !important; }
+  }
+
+  /* ===== Mobile bottom navbar (replaces sidebar < 768px) ===== */
+  .bottom-nav {
+    display: none;
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    height: 60px;
+    background: rgba(245, 245, 247, 0.78);
+    backdrop-filter: saturate(180%) blur(30px);
+    -webkit-backdrop-filter: saturate(180%) blur(30px);
+    border-radius: 22px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    padding: 6px;
+    z-index: 50;
+    gap: 6px;
+    align-items: stretch;
+  }
+  .bn-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    background: transparent;
+    border-radius: 16px;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .bn-tab svg { width: 18px; height: 18px; }
+  .bn-tab.active {
+    background: white;
+    color: var(--accent);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  /* ===== Projects list (deep dive entry on mobile) ===== */
+  .panel[data-id="projects-list"] {
+    display: none;
+  }
+  .projects-list-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 22px;
+  }
+  .pl-card {
+    text-align: left;
+    background: white;
+    border: 1px solid var(--divider);
+    border-radius: 16px;
+    padding: 14px;
+    cursor: pointer;
+    transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+    font-family: inherit;
+    color: inherit;
+  }
+  .pl-card:hover, .pl-card:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 122, 255, 0.25);
+    outline: none;
+  }
+  .pl-card .pl-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    font-size: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .pl-card .pl-thumb::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 28% 28%, rgba(255,255,255,0.32), transparent 55%);
+  }
+  .pl-card .pl-thumb span { position: relative; z-index: 1; }
+  .pl-card .pl-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .pl-card .pl-tag { font-size: 12px; color: var(--text-tertiary); }
+  .pl-card .pl-arrow {
+    margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  @media (max-width: 1100px) {
+    .welcome h1 { font-size: 48px; }
+    .process-flow { grid-template-columns: repeat(2, 1fr); }
+    .process-flow::before { display: none; }
+    .focus-grid { grid-template-columns: 1fr; }
+    .contact-grid { grid-template-columns: 1fr; }
+    .mini-process { grid-template-columns: repeat(2, 1fr); }
+    .impact-bar { grid-template-columns: 110px 1fr 60px; }
+  }
+
+  @media (max-width: 768px) {
+    :root {
+      --sidebar-width: 0px;
+      --sidebar-gap: 0px;
+      --bleed: 0px;
+      --content-offset: 0px;
+      --snap-offset: 0px;
+      --pad-left: 20px;
+      --pad-right: 20px;
+    }
+
+    /* Fully hide the desktop sidebar — !important guards against any
+       transient flash before JS / media-query takes effect. */
+    .sidebar,
+    aside.sidebar { display: none !important; }
+
+    .bottom-nav { display: flex; }
+
+    /* Horizontal scroll on mobile is limited to About + Projects-list.
+       The flex container only sees these two panels as snap targets. */
+    .content {
+      scroll-padding-left: 0;
+    }
+    .content-spacer { display: none; }
+
+    .panel {
+      padding: 28px 20px 110px 20px;
+      width: 100vw;
+      flex: 0 0 100vw;
+      height: 100dvh;
+    }
+    .panel-inner { max-width: 100%; }
+
+    /* Projects-list panel becomes the second tab in mobile */
+    .panel[data-id="projects-list"] { display: block; }
+
+    /* Individual project panels are removed from the horizontal flex flow
+       and become full-screen overlays that slide in from the right when
+       opened (iOS-style stack navigation). */
+    .panel.is-project {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100dvh;
+      flex: none;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(.2,.8,.2,1);
+      z-index: 40;
+      background: var(--bg);
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 40px; /* no bottom nav inside a project view */
+      /* Only vertical pans go to the panel; horizontal is reserved for our
+         swipe-back gesture, and never bubbles to the underlying scroller. */
+      touch-action: pan-y;
+    }
+    .panel.is-project.is-open { transform: translateX(0); }
+    .panel.is-project.is-dragging { transition: none; }
+
+    /* Project overlays don't participate in the horizontal-scroll "active"
+       state, so force their inner content to full opacity when open. */
+    .panel.is-project .panel-inner { opacity: 1 !important; }
+
+    /* Hide bottom-nav while a project is open — back is via swipe / button */
+    body.project-open .bottom-nav {
+      transform: translateY(120%);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+    .bottom-nav { transition: transform 0.25s ease, opacity 0.25s ease; }
+
+    /* Back button shown inside a project view on mobile */
+    .mobile-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.05);
+      border: none;
+      padding: 8px 14px 8px 10px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 500;
+      margin-bottom: 18px;
+      cursor: pointer;
+    }
+    .mobile-back-btn svg { width: 18px; height: 18px; }
+
+    /* === Typography (mobile) === */
+    h1.title { font-size: 30px; line-height: 1.12; letter-spacing: -0.02em; margin-bottom: 14px; }
+    h2.section-title { font-size: 20px; margin: 32px 0 10px; }
+    .eyebrow { font-size: 10px; letter-spacing: 0.1em; }
+    .lede { font-size: 16px; line-height: 1.55; margin-bottom: 22px; }
+    p.body { font-size: 15px; line-height: 1.65; }
+    .welcome { min-height: calc(100dvh - 120px); gap: 14px; padding-bottom: 16px; }
+    .welcome h1 { font-size: 36px; line-height: 1.08; letter-spacing: -0.025em; }
+    .welcome .lede { font-size: 16px; }
+    .welcome .wave { font-size: 12px; padding: 5px 11px; }
+    .welcome .quick-facts {
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+    .welcome .cta-row { gap: 8px; }
+    .sec { margin-top: 48px; }
+    .sec-eyebrow { font-size: 10px; }
+    .sec-title { font-size: 22px; margin-bottom: 10px; }
+    .sec-lede { font-size: 15px; margin-bottom: 22px; }
+
+    /* === Stack components vertically === */
+    .hero { flex-direction: column; gap: 18px; }
+    .avatar { width: 64px; height: 64px; font-size: 24px; }
+    .outcome-grid { grid-template-columns: 1fr; }
+    .image-row { grid-template-columns: 1fr; }
+    .mini-process {
+      grid-template-columns: 1fr;
+      padding: 14px;
+      gap: 14px;
+      border-radius: 12px;
+    }
+    .mini-process .step .ds { font-size: 12px; }
+    .contact-grid { grid-template-columns: 1fr; }
+    .contact-form { padding: 18px; }
+    .contact-form .row { flex-direction: column; gap: 12px; }
+    .calendly-card { padding: 18px; }
+    .focus-grid { grid-template-columns: 1fr; }
+    .actions { gap: 8px; }
+    .pill-list { gap: 6px; margin-bottom: 16px; }
+
+    /* Meta row — stack as a clean 2-col grid (or 1 col on very narrow) */
+    .meta-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 20px;
+      padding: 16px 0;
+      margin: 22px 0 24px;
+    }
+
+    /* Impact bar: stack label/value above the track */
+    .impact-bar {
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        "lbl val"
+        "trk trk";
+      gap: 6px 12px;
+      margin-bottom: 14px;
+    }
+    .impact-bar .lbl { grid-area: lbl; }
+    .impact-bar .val { grid-area: val; }
+    .impact-bar .track { grid-area: trk; height: 8px; }
+    .impact-chart { padding: 14px; }
+
+    /* Projects list — single column with bigger cards */
+    .projects-list-grid {
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .pl-card { padding: 16px; }
+    .pl-card .pl-thumb { aspect-ratio: 16 / 8; font-size: 16px; }
+    .pl-card .pl-title { font-size: 16px; }
+    .pl-card .pl-tag { font-size: 13px; }
+
+    /* Hero artwork — taller on mobile for more visual presence */
+    .artwork {
+      aspect-ratio: 4 / 5;
+      border-radius: 18px;
+      font-size: 28px;
+      max-width: 100%;
+      margin-top: 12px;
+      margin-bottom: 24px;
+    }
+
+    /* Bleed-left fallback (still used elsewhere if class was applied) */
+    .bleed-left { margin-left: 0; margin-right: 0; width: 100%; padding-left: 0; padding-right: 0; }
+
+    /* Image placeholders sized down */
+    .image-placeholder { padding: 18px; aspect-ratio: 16 / 10; margin: 12px 0; }
+    .image-placeholder.wide { aspect-ratio: 16 / 10; }
+    .image-placeholder.tall { aspect-ratio: 4 / 5; }
+
+    /* Process flow — stack into 2 cols then 1 if needed */
+    .process-flow { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .process-flow::before { display: none; }
+    .process-step .num { width: 44px; height: 44px; font-size: 16px; }
+    .process-step .label { font-size: 13px; }
+    .process-step .desc { font-size: 12px; }
+
+    /* Contact meta */
+    .contact-meta { gap: 10px; flex-direction: column; }
+
+    /* Panel nav hint — stack on mobile */
+    .panel-nav-hint {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+      margin-top: 36px;
+    }
+    .panel-nav-hint .nav-side.nav-right { text-align: left; }
+  }
+
+  @media (max-width: 480px) {
+    .welcome h1 { font-size: 30px; }
+    h1.title { font-size: 26px; }
+    .lede { font-size: 15px; }
+    .sec-title { font-size: 20px; }
+    .meta-row { grid-template-columns: 1fr 1fr; gap: 12px 18px; }
+    .artwork { font-size: 24px; }
+  }
+
+  /* Floating sidebar — sits ON TOP of the content */
+  .sidebar {
+    position: fixed;
+    top: var(--sidebar-gap);
+    left: var(--sidebar-gap);
+    bottom: var(--sidebar-gap);
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    backdrop-filter: saturate(180%) blur(30px);
+    -webkit-backdrop-filter: saturate(180%) blur(30px);
+    border-radius: var(--radius);
+    box-shadow: var(--sidebar-shadow);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    padding: 18px 8px 12px;
+    overflow-y: auto;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.35s ease, box-shadow 0.35s ease, backdrop-filter 0.35s ease;
+  }
+
+  body.is-scrolled .sidebar {
+    background: var(--sidebar-bg-scrolled);
+    box-shadow: var(--sidebar-shadow-scrolled);
+    backdrop-filter: saturate(200%) blur(50px);
+    -webkit-backdrop-filter: saturate(200%) blur(50px);
+  }
+
+  .sidebar-brand {
+    padding: 6px 12px 14px;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  .sidebar-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    padding: 12px 12px 4px;
+    letter-spacing: 0.01em;
+  }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 400;
+    margin: 1px 4px;
+    transition: background 0.15s, color 0.15s;
+    user-select: none;
+    text-decoration: none;
+  }
+  .sidebar-item:hover { background: var(--hover); }
+  .sidebar-item.active {
+    background: var(--active);
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .sidebar-item.active .sidebar-icon { color: var(--accent); }
+
+  .sidebar-icon {
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .sidebar-icon svg { width: 17px; height: 17px; }
+
+  .sidebar-spacer { flex: 1; }
+
+  .sidebar-socials {
+    padding: 10px 4px 4px;
+    border-top: 1px solid var(--divider);
+    margin: 8px 8px 0;
+  }
+  .sidebar-socials-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    padding: 4px 8px 6px;
+  }
+  .social-row {
+    display: flex;
+    gap: 6px;
+    padding: 0 4px 4px;
+  }
+  .social-btn {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: background 0.15s, transform 0.15s, color 0.15s;
+  }
+  .social-btn:hover {
+    background: var(--accent);
+    color: white;
+    transform: translateY(-1px);
+  }
+  .social-btn svg { width: 17px; height: 17px; }
+
+  /* Content area — no card, full-bleed */
+  .content {
+    position: fixed;
+    inset: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    display: flex;
+    flex-direction: row;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    z-index: 1;
+    scroll-padding-left: var(--snap-offset);
+  }
+  .content::-webkit-scrollbar { display: none; }
+
+  /* Spacer pushes the first panel to start at the snap position */
+  .content-spacer {
+    flex: 0 0 var(--snap-offset);
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .panel {
+    flex: 0 0 calc(100vw - var(--snap-offset));
+    width: calc(100vw - var(--snap-offset));
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    /* padding-left = bleed + 56 (= navbar-overlap + breathing). With
+       padding-right = 56 and panel-inner auto-margins, the inner column
+       auto-centers exactly within the visible area (right of navbar). */
+    padding: 72px var(--pad-right) 80px var(--pad-left);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .panel::-webkit-scrollbar { display: none; }
+
+  .panel-inner {
+    max-width: var(--inner-max);
+    margin: 0 auto;          /* auto-centers in panel content area */
+    will-change: transform;
+  }
+
+  /* Sections that bleed across the panel (artwork). The element spans
+     panel.left → panel.right, so when the panel is scrolled out the
+     gradient fills the navbar area continuously. Inner padding pushes
+     the label so it still lines up with the centered title above. */
+  .bleed-left {
+    /* CSS magic: 50% - 50vw + snap-offset/2 gives the negative-margin
+       needed to reach panel.left from any auto-centered child, because
+       50% (of parent) sits at the visible-area center. */
+    margin-left: calc(50% - 50vw + var(--snap-offset) / 2);
+    margin-right: calc(50% - 50vw + var(--snap-offset) / 2);
+    width: calc(100vw - var(--snap-offset));
+    max-width: none;
+    padding-left: calc(50vw - var(--snap-offset) / 2 - 50%);
+    padding-right: calc(50vw - var(--snap-offset) / 2 - 50%);
+    box-sizing: border-box;
+  }
+
+  /* Typography */
+  .greeting {
+    font-size: 14px;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .eyebrow {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  h1.title {
+    font-size: 46px;
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    font-weight: 700;
+    margin-bottom: 18px;
+  }
+  h2.section-title {
+    font-size: 24px;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    font-weight: 600;
+    margin: 40px 0 14px;
+  }
+  .lede {
+    font-size: 20px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    margin-bottom: 28px;
+    font-weight: 400;
+  }
+  p.body {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #3a3a3c;
+    margin-bottom: 16px;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 40px;
+    padding: 20px 0;
+    border-top: 1px solid var(--divider);
+    border-bottom: 1px solid var(--divider);
+    margin: 28px 0 32px;
+    flex-wrap: wrap;
+  }
+  .meta-row .label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  .meta-row .value {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  /* "View [project] →" pill anchored to the far right of the meta-row */
+  .meta-row .meta-cta {
+    margin-left: auto;
+    align-self: center;
+    margin-top: 0;
+  }
+
+  .link-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    background: var(--accent);
+    color: white;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 8px;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+    font-family: inherit;
+  }
+  .link-pill:hover { opacity: 0.9; transform: translateY(-1px); }
+  .link-pill.secondary {
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--text-primary);
+  }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+
+  /* About hero */
+  .hero {
+    display: flex;
+    align-items: flex-start;
+    gap: 32px;
+    margin-top: 4px;
+  }
+  .avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 26%;
+    background: linear-gradient(135deg, #ffb88c, #ff7e87 50%, #b48aff);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 36px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    box-shadow: 0 10px 30px rgba(255, 126, 135, 0.3);
+  }
+  .hero-text { flex: 1; min-width: 0; }
+
+  /* Project hero/artwork */
+  .artwork {
+    aspect-ratio: 16 / 7;
+    border-radius: 22px;
+    /* Match the text column width and center horizontally within
+       the panel-inner so the artwork aligns with the title/body. */
+    width: 100%;
+    max-width: var(--inner-max);
+    margin-top: 14px;
+    margin-right: auto;
+    margin-bottom: 36px;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.08);
+    position: relative;
+    overflow: hidden;
+  }
+  .artwork::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.32), transparent 55%);
+  }
+  .artwork span { position: relative; z-index: 1; }
+
+  /* Image placeholders */
+  .image-placeholder {
+    background: linear-gradient(135deg, #f4f4f6, #e9eaf0);
+    border: 1px dashed rgba(0, 0, 0, 0.12);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    text-align: center;
+    padding: 24px;
+    aspect-ratio: 16 / 9;
+    margin: 14px 0;
+  }
+  .image-placeholder .ph-icon {
+    width: 28px; height: 28px;
+    opacity: 0.5;
+  }
+  .image-placeholder .ph-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+  .image-placeholder .ph-hint {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    max-width: 320px;
+    line-height: 1.4;
+  }
+  .image-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .image-row .image-placeholder { margin: 0; aspect-ratio: 4 / 3; }
+  .image-placeholder.tall { aspect-ratio: 4 / 5; }
+  .image-placeholder.wide { aspect-ratio: 21 / 9; }
+
+  /* Process / outcomes lists */
+  .pill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 4px 0 22px;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 999px;
+  }
+
+  .outcome-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 14px 0 22px;
+  }
+  .outcome-card {
+    background: rgba(0, 0, 0, 0.025);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .outcome-card .n {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .outcome-card .l {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  .contact-block {
+    background: rgba(0, 122, 255, 0.06);
+    border: 1px solid rgba(0, 122, 255, 0.15);
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin-top: 36px;
+  }
+  .contact-block h3 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .contact-block p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 14px;
+  }
+  .contact-links { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ===== About page: welcome hero (above the fold) ===== */
+  .welcome {
+    min-height: calc(100vh - 152px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 24px;
+    padding-bottom: 24px;
+  }
+  .welcome .wave {
+    display: inline-block;
+    font-size: 14px;
+    color: var(--text-tertiary);
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 999px;
+    align-self: flex-start;
+    font-weight: 500;
+  }
+  .welcome h1 {
+    font-size: 64px;
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+    max-width: 880px;
+  }
+  .welcome h1 .accent-grad {
+    background: linear-gradient(90deg,
+      #ff7e87, #ffb88c, #b48aff, #5e8df4, #34d399, #b48aff, #ff7e87);
+    background-size: 300% 100%;
+    background-position: 0% 50%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: gradient-drift 8s ease-in-out infinite;
+  }
+  @keyframes gradient-drift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .welcome .lede {
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--text-secondary);
+    max-width: 620px;
+    margin: 0;
+  }
+  .welcome .cta-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .welcome .quick-facts {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+  .welcome .quick-facts .fact {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .welcome .quick-facts .dot {
+    width: 6px;
+    height: 6px;
+    background: #34d399;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.18);
+  }
+  .scroll-cue {
+    margin-top: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+  .scroll-cue .chev {
+    display: inline-block;
+    animation: chev-bounce 1.6s ease-in-out infinite;
+  }
+  @keyframes chev-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+  }
+
+  /* ===== Section header (cleaner about sections) ===== */
+  .sec {
+    margin-top: 80px;
+  }
+  .sec-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .sec-title {
+    font-size: 32px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .sec-lede {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin-bottom: 28px;
+    max-width: 620px;
+  }
+
+  /* ===== Process diagram ===== */
+  .process-flow {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin: 8px 0 8px;
+    position: relative;
+  }
+  .process-flow::before {
+    content: '';
+    position: absolute;
+    top: 26px;
+    left: 6%;
+    right: 6%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0, 122, 255, 0.25), rgba(0, 122, 255, 0.25), transparent);
+    z-index: 0;
+  }
+  .process-step {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .process-step .num {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid rgba(0, 122, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  }
+  .process-step:hover .num {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    transition: all 0.2s;
+  }
+  .process-step .label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .process-step .desc {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+  }
+
+  /* ===== Focus cards ===== */
+  .focus-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .focus-card {
+    background: white;
+    border: 1px solid var(--divider);
+    border-radius: 16px;
+    padding: 22px;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+  .focus-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 122, 255, 0.25);
+  }
+  .focus-card .ico {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--c1, #5e8df4), var(--c2, #b48aff));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-bottom: 14px;
+  }
+  .focus-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .focus-card p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-secondary);
+  }
+
+  /* ===== Skills row ===== */
+  .skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .skill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    background: white;
+    border: 1px solid var(--divider);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .skill .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* ===== Contact form ===== */
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 18px;
+    margin-top: 14px;
+  }
+  .contact-form {
+    background: white;
+    border: 1px solid var(--divider);
+    border-radius: 16px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .contact-form h3 {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 2px;
+  }
+  .contact-form .row { display: flex; gap: 12px; }
+  .contact-form .row > * { flex: 1; }
+  .contact-form label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 5px;
+  }
+  .contact-form input,
+  .contact-form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--divider);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text-primary);
+    background: #fafafb;
+    transition: border-color 0.15s, background 0.15s;
+    resize: vertical;
+  }
+  .contact-form input:focus,
+  .contact-form textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12);
+  }
+  .contact-form textarea {
+    min-height: 96px;
+    max-height: 240px;
+  }
+  .contact-form button[type="submit"] {
+    align-self: flex-start;
+  }
+  .form-success {
+    background: rgba(52, 211, 153, 0.12);
+    color: #047857;
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    display: none;
+  }
+  .form-success.show { display: block; }
+
+  .calendly-card {
+    background: linear-gradient(135deg, #007aff, #5e3aff);
+    color: white;
+    border-radius: 16px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 16px;
+    box-shadow: 0 14px 36px rgba(0, 122, 255, 0.2);
+  }
+  .calendly-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .calendly-card p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.86);
+  }
+  .calendly-card .cal-illustration {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 12px;
+    padding: 14px;
+    margin: 6px 0;
+    backdrop-filter: blur(10px);
+  }
+  .calendly-card .cal-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  .calendly-card .cal-row:last-child { border-bottom: none; }
+  .calendly-card .cal-row .time {
+    background: rgba(255, 255, 255, 0.22);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 11px;
+  }
+  .calendly-card .cal-btn {
+    background: white;
+    color: #1e3a8a;
+    padding: 10px 16px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    transition: transform 0.15s;
+  }
+  .calendly-card .cal-btn:hover { transform: translateY(-1px); }
+
+  .contact-meta {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--divider);
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .contact-meta a { color: var(--accent); text-decoration: none; font-weight: 500; }
+
+  /* ===== Project page: process timeline + impact chart ===== */
+  .mini-process {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 18px 0 28px;
+    background: rgba(0, 0, 0, 0.025);
+    padding: 16px;
+    border-radius: 14px;
+  }
+  .mini-process .step {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .mini-process .step .ph {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+  .mini-process .step .nm {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .mini-process .step .ds {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .mini-process .step .bar {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+    margin-bottom: 6px;
+    opacity: 0.85;
+  }
+  .mini-process .step:nth-child(1) .bar { opacity: 0.4; }
+  .mini-process .step:nth-child(2) .bar { opacity: 0.6; }
+  .mini-process .step:nth-child(3) .bar { opacity: 0.8; }
+  .mini-process .step:nth-child(4) .bar { opacity: 1; }
+
+  .impact-chart {
+    margin: 8px 0 24px;
+    padding: 18px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 14px;
+    border: 1px solid var(--divider);
+  }
+  .impact-chart .ic-title {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .impact-bar {
+    display: grid;
+    grid-template-columns: 130px 1fr 70px;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .impact-bar:last-child { margin-bottom: 0; }
+  .impact-bar .lbl { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+  .impact-bar .track {
+    height: 10px;
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+  }
+  .impact-bar .fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--c1, #007aff), var(--c2, #5e3aff));
+    border-radius: 5px;
+    transition: width 0.6s ease;
+  }
+  .impact-bar .val {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: right;
+  }
+
+  /* Mobile-only back button injected in project panels — hidden on desktop */
+  .mobile-back-btn { display: none; }
+
+  /* Mobile-only scroll edge effect — hidden on desktop */
+  .scroll-edge { display: none; }
+
+  /* Panel nav hint */
+  .panel-nav-hint {
+    margin-top: 48px;
+    padding: 20px 0 0;
+    border-top: 1px solid var(--divider);
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+  }
+  .panel-nav-hint .nav-side {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: color 0.15s;
+    background: none;
+    border: none;
+    font-family: inherit;
+    padding: 0;
+  }
+  .panel-nav-hint .nav-side:hover { color: var(--accent); }
+  .panel-nav-hint .nav-side .name {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .panel-nav-hint .nav-side .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .panel-nav-hint .nav-side.nav-right { text-align: right; }
+
+  /* =========================================================
+     MOBILE OVERRIDES — kept at the end of the stylesheet so
+     these win over equal-specificity desktop rules at <=768px.
+     ========================================================= */
+  @media (max-width: 768px) {
+    :root {
+      --sidebar-width: 0px;
+      --sidebar-gap: 0px;
+      --bleed: 0px;
+      --content-offset: 0px;
+      --snap-offset: 0px;
+      --pad-left: 20px;
+      --pad-right: 20px;
+    }
+
+    /* Fully hide the desktop sidebar */
+    .sidebar,
+    aside.sidebar { display: none !important; }
+
+    /* === Disable horizontal swipe between About and Projects ===
+       Both panels become positioned overlays, swapped by class. */
+    .content {
+      overflow: hidden;
+      display: block;
+      scroll-snap-type: none;
+    }
+    .content-spacer { display: none; }
+
+    .panel {
+      width: 100vw;
+      flex: none;
+      height: 100dvh;
+      padding: 24px 20px 96px 20px;
+    }
+    .panel[data-id="about"],
+    .panel[data-id="projects-list"] {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100dvh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      z-index: 5;
+      transform: translateX(0);
+      transition: transform 0.34s cubic-bezier(.22,1,.36,1),
+                  filter 0.34s ease;
+      box-sizing: border-box;
+      touch-action: pan-y;
+    }
+    .panel[data-id="projects-list"] { transform: translateX(100%); }
+    body.show-projects .panel[data-id="about"] {
+      /* About is completely off-screen when Projects tab is active —
+         not a layer below, a real separate page. */
+      transform: translateX(-100%);
+    }
+    body.show-projects .panel[data-id="projects-list"] { transform: translateX(0); }
+
+    /* While a project is open, the projects-list slides slightly left
+       behind it (iOS push parallax) and dims. */
+    body.project-open .panel[data-id="projects-list"] {
+      transform: translateX(-22%);
+      filter: brightness(0.92);
+    }
+    /* Also keep About fully out of the way during project view */
+    body.project-open .panel[data-id="about"] {
+      transform: translateX(-100%);
+    }
+
+    .panel-inner { max-width: 100%; }
+    .panel:not(.active) .panel-inner { opacity: 1; }
+
+    /* === Project panels — slide-in pages (iOS-style push) === */
+    .panel.is-project {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100dvh;
+      flex: none;
+      transform: translateX(100%);
+      transition: transform 0.34s cubic-bezier(.22,1,.36,1);
+      z-index: 40;
+      background: var(--bg);
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 0 0 60px 0; /* sticky header sits at the very top */
+      /* No box-shadow here: with 9 project panels stacked at translateX(100%)
+         the shadows would bleed into the visible viewport as a grey gradient
+         on the right edge. We use a pseudo-element only on the OPEN panel. */
+      touch-action: pan-y;
+    }
+    .panel.is-project::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -1px;
+      width: 1px;
+      box-shadow: -10px 0 24px rgba(0, 0, 0, 0.08);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+    .panel.is-project.is-open { transform: translateX(0); }
+    .panel.is-project.is-open::before { opacity: 1; }
+    .panel.is-project.is-dragging { transition: none; }
+    .panel.is-project .panel-inner {
+      opacity: 1 !important;
+      padding: 8px 20px 24px;
+      max-width: 100%;
+    }
+
+    /* === Liquid Glass back button — floats as a toolbar pill ===
+       Per Apple's "Menus and toolbars" guidance, toolbar items adopt the
+       Liquid Glass material and float above content. Implemented as a
+       sticky pill at the top-left, not a full-width bar. */
+    .mobile-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      position: sticky;
+      top: max(14px, env(safe-area-inset-top));
+      margin: max(14px, env(safe-area-inset-top)) 0 6px 14px;
+      padding: 8px 14px 8px 8px;
+      z-index: 10;
+      /* Glass material — matches the bottom nav */
+      background: rgba(248, 248, 250, 0.45);
+      backdrop-filter: saturate(180%) blur(28px);
+      -webkit-backdrop-filter: saturate(180%) blur(28px);
+      border: 0.5px solid rgba(255, 255, 255, 0.5);
+      border-radius: 999px;
+      box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.10),
+        0 1px 4px rgba(0, 0, 0, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 0 0 0.5px rgba(255, 255, 255, 0.25);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: var(--accent);
+      cursor: pointer;
+      align-self: flex-start;
+      width: auto;
+      justify-content: flex-start;
+      transition: background 0.2s ease, transform 0.15s ease;
+    }
+    .mobile-back-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.40) 0%,
+        rgba(255, 255, 255, 0.05) 28%,
+        rgba(255, 255, 255, 0) 55%);
+      pointer-events: none;
+    }
+    .mobile-back-btn:active {
+      transform: scale(0.96);
+      background: rgba(248, 248, 250, 0.6);
+    }
+    .mobile-back-btn svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      stroke-width: 2.4;
+      position: relative;
+      z-index: 1;
+    }
+    .mobile-back-btn > * { position: relative; z-index: 1; }
+
+    /* Hide bottom-nav while a project is open */
+    body.project-open .bottom-nav {
+      transform: translateY(160%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .bottom-nav { transition: transform 0.25s ease, opacity 0.25s ease; }
+
+    /* ============================================================
+       iOS 26 Liquid Glass bottom nav
+       Adopts Apple's Liquid Glass navigation principles:
+       - Floats as a distinct topmost layer above the content
+       - Scroll edge effect obscures content behind for legibility
+       - Minimize-on-scroll-down, expand-on-scroll-up
+       - Dynamic material with strong saturation and blur
+       ============================================================ */
+
+    /* Scroll edge effect — a soft gradient just above the nav that
+       fades scrolling content for legibility under the glass. */
+    .scroll-edge {
+      display: block;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 130px;
+      pointer-events: none;
+      z-index: 49;
+      background: linear-gradient(180deg,
+        rgba(244, 244, 246, 0) 0%,
+        rgba(244, 244, 246, 0.55) 55%,
+        rgba(244, 244, 246, 0.92) 100%);
+      opacity: 1;
+      transition: opacity 0.25s ease, transform 0.34s cubic-bezier(.22,1,.36,1);
+    }
+    body.project-open .scroll-edge { opacity: 0; }
+    body.nav-minimized .scroll-edge {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+
+    .bottom-nav {
+      display: flex;
+      position: fixed;
+      left: 14px;
+      right: 14px;
+      bottom: max(14px, env(safe-area-inset-bottom));
+      height: 64px;
+      padding: 6px;
+      border-radius: 999px; /* full capsule */
+      /* Glass material — lighter, lets more content show through */
+      background: rgba(248, 248, 250, 0.32);
+      backdrop-filter: saturate(180%) blur(28px);
+      -webkit-backdrop-filter: saturate(180%) blur(28px);
+      border: 0.5px solid rgba(255, 255, 255, 0.5);
+      box-shadow:
+        0 18px 52px rgba(0, 0, 0, 0.12),
+        0 2px 14px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 0 0 0.5px rgba(255, 255, 255, 0.25);
+      gap: 0;
+      overflow: hidden;
+      will-change: transform, opacity;
+      /* Adopt the system minimize transition curve */
+      transition:
+        transform 0.34s cubic-bezier(.22,1,.36,1),
+        opacity 0.28s ease,
+        height 0.34s cubic-bezier(.22,1,.36,1),
+        padding 0.34s cubic-bezier(.22,1,.36,1);
+    }
+    /* Specular highlight on top edge — the "wet" glass look */
+    .bottom-nav::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        linear-gradient(180deg,
+          rgba(255, 255, 255, 0.45) 0%,
+          rgba(255, 255, 255, 0.08) 22%,
+          rgba(255, 255, 255, 0) 50%,
+          rgba(255, 255, 255, 0.04) 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+    /* Faint refraction gradient at the bottom */
+    .bottom-nav::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(120% 100% at 50% 100%,
+        rgba(255, 255, 255, 0.18) 0%,
+        rgba(255, 255, 255, 0) 60%);
+      pointer-events: none;
+      z-index: 2;
+      mix-blend-mode: overlay;
+    }
+
+    /* Minimized state — nav recedes when user scrolls down */
+    body.nav-minimized .bottom-nav {
+      transform: translateY(calc(100% + max(14px, env(safe-area-inset-bottom)) + 8px));
+      opacity: 0;
+    }
+
+    /* Sliding pill indicator that morphs to the active tab.
+       Sits right up against the nav's border (only 2px gap). */
+    .bn-indicator {
+      position: absolute;
+      top: 2px;
+      bottom: 2px;
+      left: 0;
+      width: 0;
+      background: rgba(255, 255, 255, 0.88);
+      border-radius: 999px;
+      /* No outer drop shadow — flatter, cleaner. Just a subtle inner highlight
+         to retain a hint of glassy depth. */
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 1);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      transform: translateX(0);
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+    }
+    .bn-indicator.is-ready {
+      opacity: 1;
+      /* iOS 26 fluid morph curve */
+      transition: transform 0.45s cubic-bezier(.22,1,.36,1),
+                  width 0.45s cubic-bezier(.22,1,.36,1),
+                  opacity 0.2s ease;
+    }
+
+    .bn-tab {
+      position: relative;
+      z-index: 3;
+      background: transparent !important;
+      box-shadow: none !important;
+      flex-direction: column;
+      gap: 2px;
+      padding: 0;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: var(--text-secondary);
+      transition: color 0.25s ease;
+    }
+    .bn-tab svg { width: 20px; height: 20px; transition: stroke 0.25s; }
+    .bn-tab.active {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .bn-tab.active svg { color: var(--accent); }
+
+    /* === Typography === */
+    h1.title {
+      font-size: 32px;
+      line-height: 1.12;
+      letter-spacing: -0.022em;
+      margin-bottom: 16px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+    }
+    h2.section-title { font-size: 22px; margin: 30px 0 10px; line-height: 1.25; }
+    .eyebrow { font-size: 10px; letter-spacing: 0.12em; }
+    .lede { font-size: 15px; line-height: 1.55; margin-bottom: 22px; }
+    p.body { font-size: 15px; line-height: 1.65; }
+    .welcome {
+      min-height: calc(100dvh - 100px);
+      gap: 14px;
+      padding-bottom: 16px;
+      padding-top: 30px;
+    }
+    .welcome h1 { font-size: 42px; line-height: 1.06; letter-spacing: -0.028em; }
+    .welcome .lede { font-size: 16px; max-width: 100%; }
+    .welcome .wave { font-size: 12px; padding: 5px 11px; }
+    .welcome .quick-facts {
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+    .welcome .cta-row { gap: 8px; flex-wrap: wrap; }
+    .sec { margin-top: 42px; }
+    .sec-eyebrow { font-size: 10px; }
+    .sec-title { font-size: 22px; margin-bottom: 10px; line-height: 1.2; }
+    .sec-lede { font-size: 15px; margin-bottom: 22px; max-width: 100%; }
+
+    /* === Stack components vertically === */
+    .hero { flex-direction: column; gap: 18px; align-items: flex-start; }
+    .avatar { width: 64px; height: 64px; font-size: 24px; }
+    .outcome-grid { grid-template-columns: 1fr; gap: 10px; }
+    .image-row { grid-template-columns: 1fr; }
+    .mini-process {
+      grid-template-columns: 1fr;
+      padding: 14px;
+      gap: 14px;
+      border-radius: 12px;
+    }
+    .mini-process .step .ds { font-size: 12px; }
+    .contact-grid { grid-template-columns: 1fr; gap: 14px; }
+    .contact-form { padding: 18px; }
+    .contact-form .row { flex-direction: column; gap: 12px; }
+    .calendly-card { padding: 18px; }
+    .focus-grid { grid-template-columns: 1fr; gap: 12px; }
+    .actions { gap: 8px; flex-direction: column; align-items: stretch; }
+    .actions .link-pill { justify-content: center; }
+    .pill-list { gap: 6px; margin-bottom: 16px; }
+
+    .meta-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 20px;
+      padding: 16px 0;
+      margin: 22px 0 24px;
+    }
+    .meta-row .meta-cta {
+      grid-column: 1 / -1;
+      justify-self: stretch;
+      justify-content: center;
+      margin-left: 0;
+      margin-top: 6px;
+    }
+
+    .impact-bar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        "lbl val"
+        "trk trk";
+      gap: 6px 12px;
+      margin-bottom: 14px;
+    }
+    .impact-bar .lbl { grid-area: lbl; }
+    .impact-bar .val { grid-area: val; text-align: right; }
+    .impact-bar .track { grid-area: trk; height: 8px; }
+    .impact-chart { padding: 14px; }
+
+    .projects-list-grid {
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .pl-card { padding: 16px; }
+    .pl-card .pl-thumb { aspect-ratio: 16 / 8; font-size: 16px; }
+    .pl-card .pl-title { font-size: 16px; }
+    .pl-card .pl-tag { font-size: 13px; }
+
+    /* Hero artwork — vertical, taller on mobile */
+    .artwork {
+      aspect-ratio: 4 / 5;
+      border-radius: 18px;
+      font-size: 28px;
+      max-width: 100%;
+      width: 100%;
+      margin: 12px 0 24px;
+    }
+
+    .bleed-left {
+      margin-left: 0;
+      margin-right: 0;
+      width: 100%;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .image-placeholder { padding: 18px; aspect-ratio: 16 / 10; margin: 12px 0; }
+    .image-placeholder.wide { aspect-ratio: 16 / 10; }
+    .image-placeholder.tall { aspect-ratio: 4 / 5; }
+
+    /* === "How I work" — horizontal scroll snap on mobile === */
+    .process-flow {
+      display: flex !important;
+      grid-template-columns: none !important;
+      gap: 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      /* Extend to viewport edges so cards can scroll edge-to-edge,
+         but inset the start by 20px so the first card aligns with the
+         page text column (matching the panel's 20px side padding). */
+      margin: 4px -20px 0;
+      padding: 4px 20px 16px;
+      scroll-padding-left: 20px;
+      scroll-padding-right: 20px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .process-flow::-webkit-scrollbar { display: none; }
+    .process-flow::before { display: none; }
+    .process-step {
+      flex: 0 0 76%;
+      scroll-snap-align: start;
+      background: white;
+      border: 1px solid var(--divider);
+      border-radius: 14px;
+      padding: 18px 16px;
+      align-items: flex-start;
+      text-align: left;
+      gap: 12px;
+    }
+    .process-step .num { width: 44px; height: 44px; font-size: 16px; }
+    .process-step .label { font-size: 14px; }
+    .process-step .desc { font-size: 13px; line-height: 1.5; }
+
+    .contact-meta { gap: 10px; flex-direction: column; }
+
+    /* === Previous / Next on the SAME ROW on mobile === */
+    .panel-nav-hint {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 36px;
+    }
+    .panel-nav-hint .nav-side { flex: 1 1 0; min-width: 0; }
+    .panel-nav-hint .nav-side .name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .panel-nav-hint .nav-side.nav-right { text-align: right; }
+  }
+
+  @media (max-width: 480px) {
+    .welcome h1 { font-size: 36px; line-height: 1.06; }
+    h1.title { font-size: 28px; line-height: 1.14; }
+    .lede { font-size: 15px; }
+    .sec-title { font-size: 20px; }
+    .meta-row { grid-template-columns: 1fr 1fr; gap: 12px 18px; }
+    .artwork { font-size: 22px; }
+    .process-step { flex: 0 0 82%; }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- Initial site loader -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader-mark">FE</div>
+  <div class="loader-bar"></div>
+  <div class="loader-name">Filipe Eckschmidt</div>
+</div>
+
+<!-- Custom cursor -->
+<div class="cursor-shape" id="cursorShape" aria-hidden="true"></div>
+<div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+
+<!-- Scroll edge effect — fades content scrolling beneath the floating nav -->
+<div class="scroll-edge" aria-hidden="true"></div>
+
+<!-- Mobile bottom navigation -->
+<nav class="bottom-nav" id="bottomNav" aria-label="Mobile navigation">
+  <span class="bn-indicator" aria-hidden="true"></span>
+  <button class="bn-tab active" data-bn-target="about">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    About
+  </button>
+  <button class="bn-tab" data-bn-target="projects-list">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Projects
+  </button>
+</nav>
+
+<aside class="sidebar" id="sidebar" aria-label="Portfolio navigation">
+  <div class="sidebar-brand">Filipe Eckschmidt</div>
+
+  <a class="sidebar-item active" data-target="about">
+    <span class="sidebar-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </span>
+    <span>About</span>
+  </a>
+
+  <div class="sidebar-section-title">Projects</div>
+
+  <a class="sidebar-item" data-target="easy-checklist">
+    <span class="sidebar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+    <span>Easy Checklist</span>
+  </a>
+  <a class="sidebar-item" data-target="vertesis">
+    <span class="sidebar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+    <span>Vertesis</span>
+  </a>
+  <a class="sidebar-item" data-target="sphereone">
+    <span class="sidebar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+    <span>SphereOne</span>
+  </a>
+  <a class="sidebar-item" data-target="liscio">
+    <span class="sidebar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+    <span>Liscio</span>
+  </a>
+  <a class="sidebar-item" data-target="reservemoon">
+    <span class="sidebar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+    <span>ReserveMoon</span>
+  </a>
+  <a class="sidebar-item" data-target="airfront">
+    <span class="sidebar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+    <span>Airfront</span>
+  </a>
+  <a class="sidebar-item" data-target="threemint">
+    <span class="sidebar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span>
+    <span>3mint</span>
+  </a>
+  <a class="sidebar-item" data-target="lunar-ventures">
+    <span class="sidebar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+    <span>Lunar Ventures</span>
+  </a>
+  <a class="sidebar-item" data-target="pangea">
+    <span class="sidebar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+    <span>Pangea</span>
+  </a>
+
+  <div class="sidebar-spacer"></div>
+
+  <div class="sidebar-socials">
+    <div class="sidebar-socials-title">Find me on</div>
+    <div class="social-row">
+      <a class="social-btn" href="https://www.linkedin.com/in/flpkt" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+      </a>
+      <a class="social-btn" href="mailto:filipe.eck@gmail.com" aria-label="Email" title="Email">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </a>
+      <a class="social-btn" href="https://framerusercontent.com/assets/anoOfDPJYB518P5CDgFCYExcc.pdf" target="_blank" rel="noopener" aria-label="Resume" title="Resume">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      </a>
+      <a class="social-btn" href="https://flpkt.framer.website/" target="_blank" rel="noopener" aria-label="Website" title="Website">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<div class="content" id="content">
+
+  <div class="content-spacer" aria-hidden="true"></div>
+
+  <!-- Merged About + Contact panel -->
+  <section class="panel" data-id="about">
+    <div class="panel-inner">
+
+      <!-- Welcome / above the fold -->
+      <div class="welcome">
+        <span class="wave">👋 Hi, welcome</span>
+        <h1>I'm Filipe — a product designer crafting <span class="accent-grad">interfaces that feel obvious</span>.</h1>
+        <p class="lede">Currently designing experiences at Awesomic. I help teams turn complex problems into clear, scalable products — across SaaS, FinTech, and Web3.</p>
+        <div class="cta-row">
+          <button class="link-pill" data-scroll-to="about-more">Get to know me</button>
+          <button class="link-pill secondary" data-scroll-to="about-contact">Get in touch</button>
+        </div>
+        <div class="quick-facts">
+          <span class="fact"><span class="dot"></span> Available for new projects</span>
+          <span class="fact">📍 Remote · open to relocate</span>
+          <span class="fact">⏱ Reply within 24h</span>
+        </div>
+        <div class="scroll-cue">
+          Scroll for more
+          <span class="chev">↓</span>
+        </div>
+      </div>
+
+      <!-- About me -->
+      <div class="sec" id="about-more">
+        <div class="sec-eyebrow">About me</div>
+        <h2 class="sec-title">A short version of a long story.</h2>
+        <p class="sec-lede">I've spent the past several years designing products across very different worlds — auditing tools used in factory floors, tax software for accountants, Web3 onboarding flows, AI-first email. The common thread: making the complicated feel obvious.</p>
+        <p class="body">I move comfortably between strategy and craft. One day that means leading a research synthesis with a PM and engineering lead; the next, it's pushing pixels on a component spec or pairing with a developer to ship a tricky interaction. I care about the work being good, not about who gets credit for it.</p>
+      </div>
+
+      <!-- How I work — process diagram -->
+      <div class="sec">
+        <div class="sec-eyebrow">How I work</div>
+        <h2 class="sec-title">A process built around evidence, not opinion.</h2>
+        <p class="sec-lede">Every project gets some version of this — collapsed or expanded depending on scope, but the same shape.</p>
+
+        <div class="process-flow">
+          <div class="process-step">
+            <div class="num">1</div>
+            <div class="label">Discover</div>
+            <div class="desc">User interviews, analytics, stakeholder alignment</div>
+          </div>
+          <div class="process-step">
+            <div class="num">2</div>
+            <div class="label">Define</div>
+            <div class="desc">Problem framing, success metrics, scope</div>
+          </div>
+          <div class="process-step">
+            <div class="num">3</div>
+            <div class="label">Design</div>
+            <div class="desc">Flows, wireframes, hi-fi, prototypes</div>
+          </div>
+          <div class="process-step">
+            <div class="num">4</div>
+            <div class="label">Validate</div>
+            <div class="desc">Usability tests, A/B, qualitative feedback</div>
+          </div>
+          <div class="process-step">
+            <div class="num">5</div>
+            <div class="label">Ship &amp; learn</div>
+            <div class="desc">Pair with eng, measure, iterate</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- What I focus on — cards -->
+      <div class="sec">
+        <div class="sec-eyebrow">What I focus on</div>
+        <h2 class="sec-title">Four things I keep coming back to.</h2>
+
+        <div class="focus-grid">
+          <div class="focus-card">
+            <div class="ico" style="--c1:#5e8df4;--c2:#3b82f6;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+            <h3>User-centered, business-aware</h3>
+            <p>Great design sits at the intersection of what users need and what the business needs to ship. I work hard to keep both in view.</p>
+          </div>
+          <div class="focus-card">
+            <div class="ico" style="--c1:#34d399;--c2:#0891b2;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            </div>
+            <h3>Design systems that scale</h3>
+            <p>Built and contributed to systems on Material, MUI, and Tailwind. I treat them as products — versioned, documented, maintained.</p>
+          </div>
+          <div class="focus-card">
+            <div class="ico" style="--c1:#f59e0b;--c2:#ef4444;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="17" cy="7" r="3"/><path d="M21 21v-1a3 3 0 0 0-2-2.8"/></svg>
+            </div>
+            <h3>Cross-functional collaboration</h3>
+            <p>Some of the best design decisions I've made started as engineering or product conversations. I work close, not behind a wall.</p>
+          </div>
+          <div class="focus-card">
+            <div class="ico" style="--c1:#a855f7;--c2:#ec4899;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+            </div>
+            <h3>Accessibility as a floor</h3>
+            <p>WCAG 2.1 AA is the starting point. Inclusive design isn't a checklist — it changes which solutions are even on the table.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skills / tools -->
+      <div class="sec">
+        <div class="sec-eyebrow">Toolbox</div>
+        <h2 class="sec-title">Tools and tech I work with daily.</h2>
+        <div class="skills">
+          <span class="skill"><span class="dot"></span>Figma</span>
+          <span class="skill"><span class="dot"></span>FigJam</span>
+          <span class="skill"><span class="dot"></span>Material Design</span>
+          <span class="skill"><span class="dot"></span>MUI</span>
+          <span class="skill"><span class="dot"></span>Tailwind</span>
+          <span class="skill"><span class="dot"></span>Mixpanel</span>
+          <span class="skill"><span class="dot"></span>Hotjar</span>
+          <span class="skill"><span class="dot"></span>Maze</span>
+          <span class="skill"><span class="dot"></span>Notion</span>
+          <span class="skill"><span class="dot"></span>HTML / CSS</span>
+          <span class="skill"><span class="dot"></span>Framer</span>
+        </div>
+      </div>
+
+      <!-- Get in touch -->
+      <div class="sec" id="about-contact">
+        <div class="sec-eyebrow">Get in touch</div>
+        <h2 class="sec-title">Let's start creating together.</h2>
+        <p class="sec-lede">Send a message or book a 20-min intro call — whichever you prefer.</p>
+
+        <div class="contact-grid">
+          <form class="contact-form" id="contactForm" onsubmit="return handleContactSubmit(event)">
+            <h3>Send me a message</h3>
+            <div class="row">
+              <div>
+                <label for="cf-name">Your name</label>
+                <input id="cf-name" type="text" name="name" required placeholder="Jane Doe">
+              </div>
+              <div>
+                <label for="cf-email">Email</label>
+                <input id="cf-email" type="email" name="email" required placeholder="jane@company.com">
+              </div>
+            </div>
+            <div>
+              <label for="cf-subject">What's this about?</label>
+              <input id="cf-subject" type="text" name="subject" placeholder="Project, role, or just saying hi">
+            </div>
+            <div>
+              <label for="cf-message">Message</label>
+              <textarea id="cf-message" name="message" required placeholder="Tell me a little about what you're working on…"></textarea>
+            </div>
+            <button type="submit" class="link-pill">Send message →</button>
+            <div class="form-success" id="formSuccess">Thanks! Your email client should open with the message — if not, drop me a line at filipe.eck@gmail.com.</div>
+          </form>
+
+          <div class="calendly-card">
+            <div>
+              <h3>Book a quick call</h3>
+              <p>20 minutes, no pitch. Tell me about your project and we'll see if it's a fit.</p>
+            </div>
+            <div class="cal-illustration">
+              <div class="cal-row">Mon, Apr 14 <span class="time">10:00</span></div>
+              <div class="cal-row">Tue, Apr 15 <span class="time">14:30</span></div>
+              <div class="cal-row">Thu, Apr 17 <span class="time">09:00</span></div>
+            </div>
+            <a class="cal-btn" href="https://calendly.com/flpkt/intro" target="_blank" rel="noopener">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Schedule on Calendly
+            </a>
+          </div>
+        </div>
+
+        <div class="contact-meta">
+          <div>📧 <a href="mailto:filipe.eck@gmail.com">filipe.eck@gmail.com</a></div>
+          <div>💼 <a href="https://www.linkedin.com/in/flpkt" target="_blank" rel="noopener">linkedin.com/in/flpkt</a></div>
+          <div>📄 <a href="https://framerusercontent.com/assets/anoOfDPJYB518P5CDgFCYExcc.pdf" target="_blank" rel="noopener">Download resume (PDF)</a></div>
+        </div>
+      </div>
+
+      <div class="panel-nav-hint">
+        <div></div>
+        <button class="nav-side nav-right" data-target="easy-checklist">
+          <div>
+            <div class="label">Next</div>
+            <div class="name">Easy Checklist →</div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects list (mobile entry point) -->
+  <section class="panel" data-id="projects-list">
+    <div class="panel-inner">
+      <div class="eyebrow">Projects</div>
+      <h1 class="title">Selected work.</h1>
+      <p class="lede">Tap a project to dive deeper into the case study.</p>
+      <div class="projects-list-grid" id="projectsListGrid"><!-- generated --></div>
+    </div>
+  </section>
+
+  <template id="projectTemplate"></template>
+
+</div>
+
+<script>
+  const projects = [
+    {
+      id: "easy-checklist",
+      title: "Easy Checklist",
+      tagline: "Optimizing Workflows",
+      industry: "SaaS",
+      client: "Easy Checklist",
+      heading: "Enhancing usability and performance for Easy Checklist's workflow management tool",
+      sectionTitle: "Transforming task management for diverse industries",
+      body: "At Checklist Fácil, I worked as a product designer focused on improving user flows and automations for a platform that supports audit creation, workflows, and data-driven insights. Collaborating closely with PMs, I designed user-centric solutions for automated activities such as alerts, reminders, and email notifications. Beyond crafting interfaces, I participated in strategic discussions with POs, tech leads, and stakeholders to establish scalable design processes and align team objectives with user needs. My approach involved leveraging tools like usability testing, heatmaps, and feature analytics to guide decision-making. I also created a robust design system rooted in Material Design principles, ensuring consistency, accessibility, and scalability across the platform.",
+      resultsTitle: "Impactful results for a streamlined experience",
+      results: "The redesign led to measurable improvements: task completion rates increased and user engagement with key features improved. Accessibility enhancements ensured compatibility with WCAG 2.1 standards, broadening the platform's usability. By collaborating closely with stakeholders, I delivered a scalable design system that reduced development handoff time. These results not only optimized usability but also strengthened Checklist Fácil's competitive edge in the SaaS market.",
+      url: "https://checklistfacil.com/",
+      colors: ["#34d399", "#0891b2"]
+    },
+    {
+      id: "vertesis",
+      title: "Vertesis",
+      tagline: "Vertsafe platform design",
+      industry: "Workplace Safety Management",
+      client: "Vertesis",
+      heading: "Enhancing safety with intuitive design",
+      sectionTitle: "Tackling safety challenges in high-risk environments",
+      body: "Offshore oil platforms demand precision and reliability in equipment performance to ensure the safety of workers. Vertsafe was designed to monitor and analyze sensor signals and equipment data, identifying potential risks before they escalate. As the sole product designer on this project, I contributed to a cross-functional team by crafting intuitive user interfaces, defining robust user flows, and ensuring the system's accessibility. The project extended to Petrobras platforms, providing a critical tool for operational safety.",
+      resultsTitle: "Driving safety through design and collaboration",
+      results: "My work on Vertsafe had a measurable impact, enabling operators to detect anomalies more efficiently, reducing downtime, and mitigating risks to employees. By creating a comprehensive design system, I ensured scalability and consistency across the platform. Collaboration with front-end development using QT Designer, Bootstrap, HTML, and CSS allowed for the seamless integration of UI components into both the desktop software and the web dashboard. User testing validated key design decisions, highlighting a 30% improvement in user task completion rates and a significant increase in satisfaction scores.",
+      url: "https://www.vertsafe.com/",
+      colors: ["#1e3a8a", "#0ea5e9"]
+    },
+    {
+      id: "sphereone",
+      title: "SphereOne",
+      tagline: "Token transfer experience",
+      industry: "FinTech",
+      client: "SphereOne",
+      heading: "Simplifying Web3 payments integration",
+      sectionTitle: "Simplifying blockchain transfers",
+      body: "SphereOne is revolutionizing the way users interact with blockchain by streamlining token transfers. My role focused on designing an intuitive and user-friendly experience for sending tokens, addressing common pain points such as clarity in fees, transaction speed, and error prevention. This project aimed to make blockchain accessible to users with varying levels of technical expertise.",
+      resultsTitle: "Empowering developers with streamlined solutions",
+      results: "The improved integration flow reduced onboarding time with user testing revealing an increase in overall satisfaction. My role emphasized creating accessible UI components and improving error handling, ensuring a smooth user experience.",
+      url: "https://sphereone.xyz/",
+      colors: ["#7c3aed", "#ec4899"]
+    },
+    {
+      id: "liscio",
+      title: "Liscio",
+      tagline: "Tax workflow design",
+      industry: "SaaS for Accounting",
+      client: "Liscio",
+      heading: "Enhancing tax filing experiences for firms and clients",
+      sectionTitle: "Redefining tax process efficiency",
+      body: "At Liscio, I played a pivotal role in designing a platform that bridges tax firms and their clients, streamlining the U.S. tax filing process. Initially as the sole designer and later focusing on the firm-facing side of the platform, I contributed to defining project scope, creating usability flows, and conducting user testing. Working closely with PMs and developers, I helped establish design as a key function within the company. By integrating Material-UI (MUI) in Figma, I ensured consistency and quality between design and implementation, refining the platform's visual language to align with its values.",
+      resultsTitle: "Delivering user-centric impact",
+      results: "The introduction of Mixpanel allowed us to track user engagement with new and legacy features, providing data-driven insights to refine usability. Design enhancements using MUI led to a 30% reduction in user-reported inconsistencies between design and implementation. Collaboration with cross-functional teams ensured efficient sprint planning and feature rollouts, fostering a strong feedback loop.",
+      url: "https://www.liscio.me/",
+      colors: ["#0f766e", "#84cc16"]
+    },
+    {
+      id: "reservemoon",
+      title: "ReserveMoon",
+      tagline: "Reservation management UX",
+      industry: "Health & Wellness",
+      client: "ReserveMoon",
+      heading: "Designing a multi-sector reservation management platform",
+      sectionTitle: "Revolutionizing reservation systems",
+      body: "As a product designer, I partnered with Reservemoon to design a comprehensive desktop platform for reservation management across various industries, including wellness centers offering massage therapies. This platform aimed to streamline operations with features like reservation tracking, performance dashboards, and staff management tools. My role was pivotal in identifying user needs, defining a product roadmap, and crafting an accessible, user-friendly design system.",
+      resultsTitle: "Driving user-centric innovation",
+      results: "The project culminated in a fully navigable prototype, rigorously tested with end users to validate its functionality and usability. By leveraging Tailwind to develop a scalable design system, the platform ensured consistency and efficiency in development. Key outcomes included a reduction in scheduling errors reported by beta users and an improvement in booking process time.",
+      url: "#",
+      colors: ["#f59e0b", "#ef4444"]
+    },
+    {
+      id: "airfront",
+      title: "Airfront",
+      tagline: "AI email automation",
+      industry: "Tech & Communication",
+      client: "Airfront",
+      heading: "Crafting an AI-first email platform with automations",
+      sectionTitle: "Transforming email communication",
+      body: "Collaborating with Airfront, I contributed to the development of an AI-first email platform designed to automate workflows and streamline communication. The platform integrates intelligent features like automated follow-ups, task scheduling, and real-time analytics to optimize productivity. My responsibilities included user research to identify pain points, defining core features, creating a scalable design system inspired by Material Design principles, and building an interactive prototype for user testing.",
+      resultsTitle: "Elevating email management",
+      results: "The final design provided users with a seamless interface that reduced the time spent on repetitive tasks according to beta testing data. Real-time analytics dashboards improved workflow transparency, while AI-driven suggestions enhanced task prioritization. My design process emphasized accessibility, ensuring the platform met WCAG standards for inclusive use.",
+      url: "https://www.ycombinator.com/launches/Kdt-airfront-ai-first-email-platform-with-built-in-automations",
+      colors: ["#3b82f6", "#06b6d4"]
+    },
+    {
+      id: "threemint",
+      title: "3mint",
+      tagline: "Usability for NFT engagement",
+      industry: "Blockchain & Web3",
+      client: "3mint",
+      heading: "Enhancing user onboarding for NFT distribution",
+      sectionTitle: "Revolutionizing NFT access",
+      body: "3Mint, a trailblazer in blockchain solutions, sought to simplify NFT distribution for users new to Web3. The objective was to design a seamless platform that democratized NFT access while addressing barriers like wallet integration and transaction complexity. My role as a product designer was to craft intuitive interfaces that aligned with the technical underpinnings of blockchain, ensuring an engaging and frictionless user experience.",
+      resultsTitle: "Empowering users in Web3",
+      results: "The revamped platform significantly reduced user drop-off rates during NFT onboarding, with an increase in completed transactions post-launch. Through accessible design and strategic user flow adjustments, we bridged the gap between Web2 familiarity and Web3 innovation.",
+      url: "https://www.3mint.io/",
+      colors: ["#a855f7", "#6366f1"]
+    },
+    {
+      id: "lunar-ventures",
+      title: "Lunar Ventures",
+      tagline: "Lunar Ventures online hub",
+      industry: "Venture Capital",
+      client: "Lunar Ventures",
+      heading: "Designing an impactful landing page for Lunar Ventures",
+      sectionTitle: "Creating a strong first impression",
+      body: "I collaborated with Lunar Ventures to design a clean, visually appealing landing page that communicates the firm's mission and investment philosophy. The goal was to create a space that would attract startups and investors while also showcasing Lunar's expertise and portfolio. I focused on a user-friendly layout with clear calls to action and engaging visuals.",
+      resultsTitle: "Results and user impact",
+      results: "The landing page successfully captured the essence of Lunar Ventures' brand and led to increased user engagement. After the launch, analytics showed improvement in conversions from visitors to inquiries, with an enhanced user experience that highlighted Lunar's expertise and investment opportunities.",
+      url: "https://www.lunar.vc/",
+      colors: ["#1f2937", "#6b7280"]
+    },
+    {
+      id: "pangea",
+      title: "Pangea",
+      tagline: "Elevating travel experiences",
+      industry: "Travel & Tourism",
+      client: "Pangea",
+      heading: "Enhancing traveler experiences with the Pangea App",
+      sectionTitle: "Reimagining the travel app journey",
+      body: "As a product designer, I helped refine Pangea's app, aiming to improve user experience for travelers by focusing on seamless navigation, personalized trip planning, and easy social sharing. I worked closely with the development team to align on visual design and usability, enhancing the app's core features.",
+      resultsTitle: "Delivering results through design",
+      results: "The redesigned app saw improved user engagement and smoother user flows, especially travel recommendations. My work directly contributed to a more intuitive and enjoyable travel planning experience.",
+      url: "https://www.thepangea.app/",
+      colors: ["#14b8a6", "#0ea5e9"]
+    }
+  ];
+
+  const order = ["about", "projects-list", ...projects.map(p => p.id)];
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+  }
+
+  function imagePlaceholder(label, hint, modifier = "") {
+    return `
+      <div class="image-placeholder ${modifier}">
+        <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+        <div class="ph-label">${escapeHtml(label)}</div>
+        <div class="ph-hint">${escapeHtml(hint)}</div>
+      </div>
+    `;
+  }
+
+  function renderProjectPanel(p, prevId, nextId) {
+    const labelFor = id => {
+      if (id === "about") return "About";
+      if (id === "projects-list") return "Projects";
+      return (projects.find(x => x.id === id) || {}).title || "";
+    };
+    const prevLabel = labelFor(prevId);
+    const nextLabel = nextId ? labelFor(nextId) : "";
+
+    return `
+      <section class="panel is-project" data-id="${p.id}">
+        <button class="mobile-back-btn" data-mobile-back aria-label="Back to projects">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Projects
+        </button>
+        <div class="panel-inner">
+          <div class="eyebrow">${escapeHtml(p.industry)} · ${escapeHtml(p.client)}</div>
+          <h1 class="title">${escapeHtml(p.heading)}</h1>
+
+          <div class="artwork" style="background:linear-gradient(135deg, ${p.colors[0]}, ${p.colors[1]});">
+            <span>${escapeHtml(p.title)}</span>
+          </div>
+
+          <div class="meta-row">
+            <div><div class="label">Industry</div><div class="value">${escapeHtml(p.industry)}</div></div>
+            <div><div class="label">Client</div><div class="value">${escapeHtml(p.client)}</div></div>
+            <div><div class="label">Role</div><div class="value">Product Designer</div></div>
+            <div><div class="label">Timeline</div><div class="value">[Add duration]</div></div>
+            ${p.url && p.url !== "#" ? `<a class="link-pill meta-cta" href="${escapeHtml(p.url)}" target="_blank" rel="noopener">View ${escapeHtml(p.title)} →</a>` : ""}
+          </div>
+
+          <h2 class="section-title">Context</h2>
+          <p class="body">${escapeHtml(p.body)}</p>
+          <p class="body" style="color:var(--text-tertiary);font-style:italic;">[Add: business context, team structure, what success looked like before the project started, and how this work fit into the broader product strategy.]</p>
+
+          <h2 class="section-title">The challenge</h2>
+          <p class="body">${escapeHtml(p.sectionTitle)}.</p>
+          <p class="body" style="color:var(--text-tertiary);font-style:italic;">[Add: the specific user or business problem, research findings, competitive landscape, and the constraints we were designing within. Quantify pain points where possible — e.g. "task completion rate sat at X%."]</p>
+
+          <h2 class="section-title">My role &amp; team</h2>
+          <div class="pill-list">
+            <span class="pill">Product Designer</span>
+            <span class="pill">UX Research</span>
+            <span class="pill">Design Systems</span>
+            <span class="pill">Prototyping</span>
+            <span class="pill">Stakeholder Collaboration</span>
+          </div>
+          <p class="body" style="color:var(--text-tertiary);font-style:italic;">[Add: team composition (PMs, engineers, researchers), what you specifically led vs. contributed to, and how decisions were made.]</p>
+
+          <h2 class="section-title">Process at a glance</h2>
+          <p class="body">A snapshot of how the work moved from ambiguity to a shipped experience.</p>
+
+          <div class="mini-process">
+            <div class="step">
+              <div class="bar"></div>
+              <div class="ph">Phase 01</div>
+              <div class="nm">Discover</div>
+              <div class="ds">User interviews, analytics review, stakeholder alignment.</div>
+            </div>
+            <div class="step">
+              <div class="bar"></div>
+              <div class="ph">Phase 02</div>
+              <div class="nm">Define</div>
+              <div class="ds">Problem framing, success metrics, scope guardrails.</div>
+            </div>
+            <div class="step">
+              <div class="bar"></div>
+              <div class="ph">Phase 03</div>
+              <div class="nm">Design</div>
+              <div class="ds">Flows, wireframes, hi-fi, prototypes, design-system work.</div>
+            </div>
+            <div class="step">
+              <div class="bar"></div>
+              <div class="ph">Phase 04</div>
+              <div class="nm">Validate &amp; ship</div>
+              <div class="ds">Usability tests, eng pairing, instrumentation, iteration.</div>
+            </div>
+          </div>
+
+          ${imagePlaceholder("Discovery research", "[User interview clips, journey maps, problem framing artifacts. Show the messy early thinking.]", "wide")}
+
+          <div class="image-row">
+            ${imagePlaceholder("Early explorations", "[Sketches, lo-fi wireframes, divergent concepts. Show range and reasoning.]")}
+            ${imagePlaceholder("Synthesis", "[Affinity maps, opportunity areas, the framing that unlocked the design direction.]")}
+          </div>
+
+          <h2 class="section-title">Design decisions</h2>
+          <p class="body" style="color:var(--text-tertiary);font-style:italic;">[Add: 2–3 specific design decisions you made. For each, explain the tradeoff, what you tested, and why you chose this path. This is where seniority shows.]</p>
+
+          ${imagePlaceholder("Key flow — annotated", "[Final flow with annotations explaining the rationale behind major decisions.]", "wide")}
+
+          <div class="image-row">
+            ${imagePlaceholder("Component / system view", "[Design system contribution, tokens, component anatomy, or reusable patterns.]")}
+            ${imagePlaceholder("Interaction detail", "[Micro-interaction, state diagram, or motion spec — anything that demonstrates craft.]")}
+          </div>
+
+          <h2 class="section-title">Validation</h2>
+          <p class="body" style="color:var(--text-tertiary);font-style:italic;">[Add: usability tests, A/B results, analytics deltas, qualitative feedback. Reference what you learned and how the design evolved.]</p>
+
+          ${imagePlaceholder("Before / after", "[Side-by-side comparison or testing artifacts that show the impact of changes.]", "wide")}
+
+          <h2 class="section-title">Impact</h2>
+          <div class="impact-chart">
+            <div class="ic-title">Before → After</div>
+            <div class="impact-bar">
+              <div class="lbl">Task completion</div>
+              <div class="track"><div class="fill" style="width: 78%; --c1:${p.colors[0]}; --c2:${p.colors[1]};"></div></div>
+              <div class="val">[+XX%]</div>
+            </div>
+            <div class="impact-bar">
+              <div class="lbl">Time on task</div>
+              <div class="track"><div class="fill" style="width: 62%; --c1:${p.colors[0]}; --c2:${p.colors[1]};"></div></div>
+              <div class="val">[-XX%]</div>
+            </div>
+            <div class="impact-bar">
+              <div class="lbl">Satisfaction (CSAT)</div>
+              <div class="track"><div class="fill" style="width: 86%; --c1:${p.colors[0]}; --c2:${p.colors[1]};"></div></div>
+              <div class="val">[+XX pts]</div>
+            </div>
+            <div class="impact-bar">
+              <div class="lbl">Support tickets</div>
+              <div class="track"><div class="fill" style="width: 45%; --c1:${p.colors[0]}; --c2:${p.colors[1]};"></div></div>
+              <div class="val">[-XX%]</div>
+            </div>
+          </div>
+
+          <div class="outcome-grid">
+            <div class="outcome-card"><div class="n">[XX%]</div><div class="l">Primary success metric</div></div>
+            <div class="outcome-card"><div class="n">[XX%]</div><div class="l">Secondary lift</div></div>
+            <div class="outcome-card"><div class="n">[Qual]</div><div class="l">User or team feedback</div></div>
+          </div>
+          <p class="body">${escapeHtml(p.results)}</p>
+
+          <h2 class="section-title">Reflections</h2>
+          <p class="body" style="color:var(--text-tertiary);font-style:italic;">[Add: what you'd do differently, what surprised you, what you took into the next project. Honest, brief, specific.]</p>
+
+          <div class="panel-nav-hint">
+            <button class="nav-side" data-target="${prevId}">
+              <div>
+                <div class="label">← Previous</div>
+                <div class="name">${escapeHtml(prevLabel)}</div>
+              </div>
+            </button>
+            ${nextId ? `
+              <button class="nav-side nav-right" data-target="${nextId}">
+                <div>
+                  <div class="label">Next</div>
+                  <div class="name">${escapeHtml(nextLabel)} →</div>
+                </div>
+              </button>
+            ` : `<div></div>`}
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  // Render project panels
+  const content = document.getElementById('content');
+  const template = document.getElementById('projectTemplate');
+  projects.forEach((p, i) => {
+    const prevId = i === 0 ? "projects-list" : projects[i - 1].id;
+    const nextId = i < projects.length - 1 ? projects[i + 1].id : null;
+    template.insertAdjacentHTML('beforebegin', renderProjectPanel(p, prevId, nextId));
+  });
+  template.remove();
+
+  // Render projects-list cards
+  const projectsListGrid = document.getElementById('projectsListGrid');
+  if (projectsListGrid) {
+    projectsListGrid.innerHTML = projects.map(p => `
+      <button class="pl-card" data-target="${p.id}">
+        <div class="pl-thumb" style="background:linear-gradient(135deg, ${p.colors[0]}, ${p.colors[1]});">
+          <span>${escapeHtml(p.title)}</span>
+        </div>
+        <div class="pl-title">${escapeHtml(p.title)}</div>
+        <div class="pl-tag">${escapeHtml(p.tagline)}</div>
+        <div class="pl-arrow">Open case study →</div>
+      </button>
+    `).join('');
+  }
+
+  const panels = Array.from(content.querySelectorAll('.panel'));
+  const sidebarItems = Array.from(document.querySelectorAll('.sidebar-item[data-target]'));
+
+  // Single source of truth for "are we in the mobile layout"
+  const mobileMQ = window.matchMedia('(max-width: 768px)');
+  const isMobile = () => mobileMQ.matches;
+
+  // Project-overlay state (mobile only)
+  let openProjectPanel = null;
+
+  function openProjectMobile(id) {
+    const panel = panels.find(p => p.dataset.id === id);
+    if (!panel || !panel.classList.contains('is-project')) return;
+    if (openProjectPanel && openProjectPanel !== panel) {
+      openProjectPanel.classList.remove('is-open');
+    }
+    panel.classList.add('is-open');
+    panel.scrollTop = 0;
+    openProjectPanel = panel;
+    document.body.classList.add('project-open');
+  }
+
+  function closeProjectMobile() {
+    if (openProjectPanel) {
+      openProjectPanel.classList.remove('is-open');
+      openProjectPanel = null;
+    }
+    document.body.classList.remove('project-open');
+    // Keep the user on the Projects tab after closing a project
+    document.body.classList.add('show-projects');
+    setActive('projects-list');
+  }
+
+  function scrollToTarget(id) {
+    // === Mobile navigation: no horizontal scrolling between panels. ===
+    if (isMobile()) {
+      // Project panels slide in as overlays
+      if (projects.some(p => p.id === id)) {
+        openProjectMobile(id);
+        return;
+      }
+      // Close any open project first
+      if (openProjectPanel) closeProjectMobile();
+      // Switch between About and Projects-list by toggling a body class
+      if (id === 'about') {
+        document.body.classList.remove('show-projects');
+      } else if (id === 'projects-list') {
+        document.body.classList.add('show-projects');
+      }
+      return;
+    }
+
+    let panel = panels.find(p => p.dataset.id === id);
+    if (!panel) return;
+    // If panel is hidden at this breakpoint (e.g., projects-list on desktop),
+    // fall back to the nearest visible neighbour so navigation never dead-ends.
+    if (panel.offsetWidth === 0) {
+      const idx = order.indexOf(id);
+      let fallback = null;
+      for (let i = idx - 1; i >= 0 && !fallback; i--) {
+        const c = panels.find(p => p.dataset.id === order[i]);
+        if (c && c.offsetWidth > 0) fallback = c;
+      }
+      if (!fallback) for (let i = idx + 1; i < order.length && !fallback; i++) {
+        const c = panels.find(p => p.dataset.id === order[i]);
+        if (c && c.offsetWidth > 0) fallback = c;
+      }
+      if (!fallback) return;
+      panel = fallback;
+    }
+    content.scrollTo({ left: panel.offsetLeft, behavior: 'smooth' });
+    panel.scrollTop = 0;
+  }
+
+  function setActive(id) {
+    sidebarItems.forEach(item => {
+      item.classList.toggle('active', item.dataset.target === id);
+    });
+    // Sync mobile bottom-nav: "About" stays active on the about panel,
+    // "Projects" stays active on the list and on any individual project.
+    const bnTabs = document.querySelectorAll('.bn-tab');
+    let activeTab = null;
+    bnTabs.forEach(tab => {
+      const tabTarget = tab.dataset.bnTarget;
+      const isAboutTab = tabTarget === 'about';
+      const matches = isAboutTab
+        ? id === 'about'
+        : (id === 'projects-list' || projects.some(p => p.id === id));
+      tab.classList.toggle('active', matches);
+      if (matches) activeTab = tab;
+    });
+    positionBnIndicator(activeTab);
+  }
+
+  /* === Sliding pill indicator behind the active bottom-nav tab === */
+  const bnIndicator = document.querySelector('.bn-indicator');
+  const bnNav = document.getElementById('bottomNav');
+  function positionBnIndicator(activeTab) {
+    if (!bnIndicator || !activeTab || !bnNav) return;
+    const navBox = bnNav.getBoundingClientRect();
+    const tabBox = activeTab.getBoundingClientRect();
+    // Inset the indicator from each side so it sits ~2px from the nav border.
+    // Tabs span the full nav minus its 6px padding; insetting by -4px brings
+    // the indicator out into the padding area on each side (2px from border).
+    const INSET = -4;
+    const left = (tabBox.left - navBox.left) + INSET;
+    const width = Math.max(0, tabBox.width - INSET * 2);
+    bnIndicator.style.transform = `translateX(${left}px)`;
+    bnIndicator.style.width = `${width}px`;
+    if (!bnIndicator.classList.contains('is-ready')) {
+      // Force browser to apply the initial position before enabling transitions
+      requestAnimationFrame(() => bnIndicator.classList.add('is-ready'));
+    }
+  }
+  // Re-position on resize / orientation change
+  window.addEventListener('resize', () => {
+    const active = document.querySelector('.bn-tab.active');
+    positionBnIndicator(active);
+  });
+
+  /* =================================================================
+     iOS 26 Liquid Glass: tab-bar minimize-on-scroll behavior.
+     Apple's `.tabBarMinimizeBehavior(.onScrollDown)` — the bar recedes
+     when the user scrolls *down* and re-expands when scrolling *up*.
+     We watch the currently visible mobile panel (about, projects-list,
+     or an open project) and toggle a `nav-minimized` class on <body>.
+     ================================================================= */
+  (function initNavMinimize() {
+    const MIN_SCROLL_TO_TRIGGER = 6; // ignore micro-jitter
+    const SHOW_NEAR_TOP = 24;        // always show near the top
+    let lastScrollTop = 0;
+    let ticking = false;
+
+    function getActiveScroller() {
+      if (openProjectPanel) return openProjectPanel;
+      if (document.body.classList.contains('show-projects')) {
+        return document.querySelector('.panel[data-id="projects-list"]');
+      }
+      return document.querySelector('.panel[data-id="about"]');
+    }
+
+    function onPanelScroll() {
+      if (!isMobile()) return;
+      const scroller = getActiveScroller();
+      if (!scroller) return;
+      const st = scroller.scrollTop;
+      const delta = st - lastScrollTop;
+
+      if (st <= SHOW_NEAR_TOP) {
+        document.body.classList.remove('nav-minimized');
+      } else if (delta > MIN_SCROLL_TO_TRIGGER) {
+        // scrolling down → minimize
+        document.body.classList.add('nav-minimized');
+      } else if (delta < -MIN_SCROLL_TO_TRIGGER) {
+        // scrolling up → expand
+        document.body.classList.remove('nav-minimized');
+      }
+      lastScrollTop = st;
+      ticking = false;
+    }
+
+    function schedule() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(onPanelScroll);
+    }
+
+    // Attach a scroll listener to every panel (cheap; only one is visible at a time)
+    panels.forEach(panel => {
+      panel.addEventListener('scroll', () => {
+        // Track each panel's scroll independently; reset baseline when switching
+        if (getActiveScroller() === panel) {
+          schedule();
+        } else {
+          lastScrollTop = panel.scrollTop;
+        }
+      }, { passive: true });
+    });
+
+    // Reset baseline when the active scroller changes (tab switch, project open/close)
+    function resetBaseline() {
+      const s = getActiveScroller();
+      lastScrollTop = s ? s.scrollTop : 0;
+      document.body.classList.remove('nav-minimized');
+    }
+    // Hook into the existing functions
+    const _open = openProjectMobile;
+    openProjectMobile = function(id) { _open(id); resetBaseline(); };
+    const _close = closeProjectMobile;
+    closeProjectMobile = function() { _close(); resetBaseline(); };
+
+    // Also reset on tab change via bn-tab clicks
+    document.querySelectorAll('.bn-tab').forEach(tab => {
+      tab.addEventListener('click', () => setTimeout(resetBaseline, 50), { passive: true });
+    });
+
+    // If user resizes from desktop to mobile, ensure clean state
+    mobileMQ.addEventListener('change', e => {
+      if (!e.matches) document.body.classList.remove('nav-minimized');
+    });
+  })();
+
+  sidebarItems.forEach(item => {
+    item.addEventListener('click', e => {
+      e.preventDefault();
+      const id = item.dataset.target;
+      scrollToTarget(id);
+      setActive(id);
+    });
+  });
+
+  // Bottom-nav (mobile) tabs
+  document.querySelectorAll('.bn-tab').forEach(tab => {
+    tab.addEventListener('click', e => {
+      e.preventDefault();
+      const id = tab.dataset.bnTarget;
+      scrollToTarget(id);
+      setActive(id);
+    });
+  });
+
+  content.addEventListener('click', e => {
+    // Mobile back button inside a project view
+    const backBtn = e.target.closest('[data-mobile-back]');
+    if (backBtn) {
+      e.preventDefault();
+      closeProjectMobile();
+      return;
+    }
+
+    // In-panel anchor: scroll within current panel to an element with a given id
+    const scrollTrigger = e.target.closest('[data-scroll-to]');
+    if (scrollTrigger) {
+      e.preventDefault();
+      const targetEl = document.getElementById(scrollTrigger.dataset.scrollTo);
+      if (targetEl) {
+        const panel = targetEl.closest('.panel');
+        if (panel) {
+          panel.scrollTo({ top: targetEl.offsetTop - 32, behavior: 'smooth' });
+        }
+      }
+      return;
+    }
+
+    const trigger = e.target.closest('[data-target]');
+    if (!trigger) return;
+    if (trigger.classList.contains('sidebar-item')) return;
+    e.preventDefault();
+    const id = trigger.dataset.target;
+    scrollToTarget(id);
+    setActive(id);
+  });
+
+  /* ===== iOS-style swipe-back gesture (mobile, project overlays) ===== */
+  (function initSwipeBack() {
+    const EDGE_ZONE = 24;     // px from left edge that starts a back gesture
+    const COMMIT_RATIO = 0.32; // fraction of width past which we commit close
+    const COMMIT_VELOCITY = 0.55; // px/ms — flick threshold
+
+    let trackingPanel = null;
+    let startX = 0;
+    let startY = 0;
+    let startT = 0;
+    let lastX = 0;
+    let lastT = 0;
+    let axisLocked = false;
+    let axisIsX = false;
+
+    function onStart(e) {
+      if (!isMobile() || !openProjectPanel) return;
+      const t = e.touches ? e.touches[0] : e;
+      if (t.clientX > EDGE_ZONE) return;
+      trackingPanel = openProjectPanel;
+      startX = lastX = t.clientX;
+      startY = t.clientY;
+      startT = lastT = performance.now();
+      axisLocked = false;
+      axisIsX = false;
+      trackingPanel.classList.add('is-dragging');
+    }
+
+    function onMove(e) {
+      if (!trackingPanel) return;
+      const t = e.touches ? e.touches[0] : e;
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+
+      if (!axisLocked) {
+        if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+          axisLocked = true;
+          axisIsX = Math.abs(dx) > Math.abs(dy);
+          if (!axisIsX) {
+            // user is scrolling vertically — release the gesture
+            trackingPanel.classList.remove('is-dragging');
+            trackingPanel = null;
+            return;
+          }
+        } else {
+          return;
+        }
+      }
+
+      if (!axisIsX) return;
+      if (e.cancelable) e.preventDefault();
+      const px = Math.max(0, dx);
+      trackingPanel.style.transform = `translateX(${px}px)`;
+      lastX = t.clientX;
+      lastT = performance.now();
+    }
+
+    function onEnd() {
+      if (!trackingPanel) return;
+      const panel = trackingPanel;
+      trackingPanel = null;
+      panel.classList.remove('is-dragging');
+
+      const dx = lastX - startX;
+      const dt = Math.max(1, lastT - startT);
+      const velocity = dx / dt;
+      const width = panel.offsetWidth || window.innerWidth;
+      const commit = dx > width * COMMIT_RATIO || velocity > COMMIT_VELOCITY;
+
+      // Clear inline transform so CSS transition takes over
+      panel.style.transform = '';
+      if (commit) {
+        closeProjectMobile();
+      }
+      // If not committing, removing the inline transform animates it back.
+    }
+
+    document.addEventListener('touchstart', onStart, { passive: true });
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd, { passive: true });
+    document.addEventListener('touchcancel', onEnd, { passive: true });
+  })();
+
+  // If the viewport changes from mobile to desktop while a project is open,
+  // close the overlay so we don't end up in a weird state.
+  mobileMQ.addEventListener('change', e => {
+    if (!e.matches && openProjectPanel) {
+      closeProjectMobile();
+    }
+  });
+
+  // Contact form: hand off to user's mail client + show inline confirmation
+  window.handleContactSubmit = function(event) {
+    event.preventDefault();
+    const form = event.target;
+    const name = encodeURIComponent(form.name.value || '');
+    const email = encodeURIComponent(form.email.value || '');
+    const subject = encodeURIComponent(form.subject.value || 'Hello from your portfolio');
+    const message = encodeURIComponent(
+      (form.message.value || '') +
+      '\n\n— ' + (form.name.value || '') +
+      '\n' + (form.email.value || '')
+    );
+    const mailto = `mailto:filipe.eck@gmail.com?subject=${subject}&body=${message}`;
+    window.location.href = mailto;
+    document.getElementById('formSuccess').classList.add('show');
+    return false;
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    // On mobile, tab state is managed manually by user clicks — don't let
+    // intersection events flip it under the user's feet.
+    if (isMobile()) return;
+    entries.forEach(entry => {
+      if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+        setActive(entry.target.dataset.id);
+      }
+    });
+  }, {
+    root: content,
+    threshold: [0.5, 0.75]
+  });
+  panels.forEach(p => observer.observe(p));
+
+  function updateScrolled() {
+    const horizontallyOffStart = content.scrollLeft > 4;
+    const anyVerticallyScrolled = panels.some(p => p.scrollTop > 4);
+    document.body.classList.toggle('is-scrolled', horizontallyOffStart || anyVerticallyScrolled);
+  }
+  content.addEventListener('scroll', updateScrolled, { passive: true });
+  panels.forEach(p => p.addEventListener('scroll', updateScrolled, { passive: true }));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    // Escape closes a project overlay on mobile
+    if (e.key === 'Escape' && openProjectPanel) {
+      closeProjectMobile();
+      return;
+    }
+    const activeIdx = order.findIndex(id => sidebarItems.find(s => s.dataset.target === id && s.classList.contains('active')));
+    if (e.key === 'ArrowRight' && activeIdx < order.length - 1) {
+      scrollToTarget(order[activeIdx + 1]); setActive(order[activeIdx + 1]);
+    } else if (e.key === 'ArrowLeft' && activeIdx > 0) {
+      scrollToTarget(order[activeIdx - 1]); setActive(order[activeIdx - 1]);
+    }
+  });
+
+  requestAnimationFrame(() => {
+    scrollToTarget('about');
+    setActive('about');
+  });
+
+  /* ===== Active panel + parallax on horizontal scroll ===== */
+  function getSnapOffsetPx() {
+    const v = getComputedStyle(document.documentElement)
+      .getPropertyValue('--snap-offset')
+      .trim();
+    // calc() values aren't resolved by getComputedStyle on :root vars in
+    // every engine, so fall back to a measured value from the spacer.
+    const parsed = parseFloat(v);
+    if (!isNaN(parsed) && v.endsWith('px')) return parsed;
+    const spacer = document.querySelector('.content-spacer');
+    return spacer ? spacer.offsetWidth : 0;
+  }
+
+  let snapOffsetCached = getSnapOffsetPx();
+  window.addEventListener('resize', () => {
+    snapOffsetCached = getSnapOffsetPx();
+    requestAnimationFrame(applyParallax);
+  });
+
+  function syncActivePanelClass() {
+    const cw = content.clientWidth;
+    const sl = content.scrollLeft;
+    let bestIdx = 0;
+    let bestOverlap = -1;
+    panels.forEach((p, i) => {
+      const pl = p.offsetLeft;
+      const pr = pl + p.offsetWidth;
+      const overlap = Math.max(0, Math.min(pr, sl + cw) - Math.max(pl, sl));
+      if (overlap > bestOverlap) {
+        bestOverlap = overlap;
+        bestIdx = i;
+      }
+    });
+    panels.forEach((p, i) => p.classList.toggle('active', i === bestIdx));
+  }
+
+  // Parallax: outgoing panel lags behind (deceleration / repulsion feel),
+  // incoming panel slides in slightly delayed too. Multiple layers move at
+  // different rates so it feels like depth instead of one rigid block.
+  function applyParallax() {
+    // No horizontal scroll on mobile — clear any leftover transforms and skip.
+    if (isMobile()) {
+      panels.forEach(panel => {
+        const inner = panel.querySelector('.panel-inner');
+        if (inner) inner.style.transform = '';
+        const artwork = panel.querySelector('.artwork');
+        if (artwork) artwork.style.transform = '';
+        const title = panel.querySelector('h1.title, h1.page-title, .welcome h1');
+        if (title) title.style.transform = '';
+      });
+      return;
+    }
+    const sl = content.scrollLeft;
+    panels.forEach(panel => {
+      if (!panel.offsetWidth) return; // hidden
+      const inner = panel.querySelector('.panel-inner');
+      if (!inner) return;
+
+      const pl = panel.offsetLeft;
+      const pw = panel.offsetWidth;
+      const visibleLeft = pl - sl;
+      const offset = visibleLeft - snapOffsetCached; // 0 when current
+
+      // Normalised distance (-1 .. 1 across one panel width either side)
+      const t = Math.max(-1, Math.min(1, offset / pw));
+      // ease-out cubic so deceleration is gentle as a panel approaches
+      // its snap position from either direction
+      const eased = t < 0
+        ? -(1 - Math.pow(1 + t, 3))
+        :  (1 - Math.pow(1 - t, 3));
+      // Inner lag — outgoing translates right (positive), upcoming left
+      const innerLag = -eased * 70;
+      inner.style.transform = `translate3d(${innerLag}px, 0, 0)`;
+
+      // Differential parallax on the artwork (moves slightly faster than
+      // surrounding text — creates a subtle depth effect)
+      const artwork = panel.querySelector('.artwork');
+      if (artwork) {
+        const artLag = -eased * 110;
+        artwork.style.transform = `translate3d(${artLag - innerLag}px, 0, 0)`;
+      }
+      // Title nudges in the opposite direction for visual punch
+      const title = panel.querySelector('h1.title, h1.page-title, .welcome h1');
+      if (title) {
+        const titleLag = -eased * 40;
+        title.style.transform = `translate3d(${titleLag - innerLag}px, 0, 0)`;
+      }
+    });
+  }
+
+  let parallaxRAF = null;
+  function scheduleScrollUpdate() {
+    if (parallaxRAF) return;
+    parallaxRAF = requestAnimationFrame(() => {
+      syncActivePanelClass();
+      applyParallax();
+      parallaxRAF = null;
+    });
+  }
+  content.addEventListener('scroll', scheduleScrollUpdate, { passive: true });
+  requestAnimationFrame(() => {
+    syncActivePanelClass();
+    applyParallax();
+  });
+
+  /* ===== Scroll reveal observer ===== */
+  function setupReveal() {
+    const revealEls = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+    revealEls.forEach(el => io.observe(el));
+
+    // Per-panel vertical reveal
+    panels.forEach(panel => {
+      const items = panel.querySelectorAll('.sec, .focus-card, .skill, .process-step, .image-placeholder, .image-row, .outcome-card, .impact-bar, .mini-process .step, .contact-form, .calendly-card');
+      const panelIO = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            panelIO.unobserve(entry.target);
+          }
+        });
+      }, { root: panel, threshold: 0.18 });
+      items.forEach(el => { el.classList.add('reveal'); panelIO.observe(el); });
+    });
+  }
+  setupReveal();
+
+  /* ===== Initial loader ===== */
+  function hideLoader() {
+    const loader = document.getElementById('loader');
+    if (!loader) return;
+    loader.classList.add('hidden');
+    setTimeout(() => { loader.style.display = 'none'; }, 700);
+  }
+  window.addEventListener('load', () => {
+    setTimeout(hideLoader, 900);
+  });
+  // Fallback in case 'load' already fired
+  if (document.readyState === 'complete') setTimeout(hideLoader, 900);
+
+  /* ===== iPadOS-style custom cursor ===== */
+  (function initCursor() {
+    if (window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
+    const shape = document.getElementById('cursorShape');
+    const dot = document.getElementById('cursorDot');
+    if (!shape || !dot) return;
+
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let shapeX = mouseX, shapeY = mouseY;
+    let targetW = 28, targetH = 28, targetR = 50;
+    let curW = 28, curH = 28, curR = 50;
+    let hoverEl = null;
+    let lockToEl = false;
+
+    // Only truly clickable / focusable elements morph the cursor
+    const interactiveSel = [
+      'a[href]',
+      'button',
+      'input:not([type="hidden"])',
+      'textarea',
+      'select',
+      '.sidebar-item',
+      '.focus-card',
+      '.link-pill',
+      '.social-btn',
+      '.nav-side',
+      '.cal-btn',
+      '.project-card',
+      '.bn-tab',
+      '[data-target]:not(.process-step)',
+      '[data-scroll-to]',
+      '[role="button"]'
+    ].join(', ');
+
+    document.addEventListener('mousemove', e => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      dot.style.left = mouseX + 'px';
+      dot.style.top = mouseY + 'px';
+
+      const target = e.target.closest(interactiveSel);
+      if (target && target !== hoverEl) {
+        hoverEl = target;
+        const r = target.getBoundingClientRect();
+        // Hug the element fully — no caps. Add a small padding so the cursor
+        // sits a couple of pixels outside the element's edges.
+        targetW = r.width + 8;
+        targetH = r.height + 8;
+        // Match element's border-radius where possible
+        const cs = getComputedStyle(target);
+        let br = parseFloat(cs.borderRadius);
+        if (isNaN(br) || br === 0) br = 12;
+        const cap = Math.min(targetW, targetH) / 2;
+        if (br > cap) br = cap;
+        targetR = br;
+        shape.classList.add('on-element');
+        lockToEl = true;
+        // Snap shape to element center for smooth morph
+        shapeX = r.left + r.width / 2;
+        shapeY = r.top + r.height / 2;
+      } else if (!target && hoverEl) {
+        hoverEl = null;
+        targetW = 22;
+        targetH = 22;
+        targetR = 50;
+        shape.classList.remove('on-element');
+        lockToEl = false;
+      }
+    }, { passive: true });
+
+    document.addEventListener('mouseleave', () => {
+      document.body.classList.add('cursor-hidden');
+    });
+    document.addEventListener('mouseenter', () => {
+      document.body.classList.remove('cursor-hidden');
+    });
+
+    document.addEventListener('mousedown', () => {
+      shape.style.transform = 'translate(-50%, -50%) scale(0.92)';
+    });
+    document.addEventListener('mouseup', () => {
+      shape.style.transform = 'translate(-50%, -50%) scale(1)';
+    });
+
+    function tick() {
+      // Smoothly approach target dimensions
+      curW += (targetW - curW) * 0.22;
+      curH += (targetH - curH) * 0.22;
+      curR += (targetR - curR) * 0.22;
+
+      if (lockToEl && hoverEl && document.contains(hoverEl)) {
+        const r = hoverEl.getBoundingClientRect();
+        // Slight magnetic offset toward mouse position within element
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const offX = (mouseX - cx) * 0.18;
+        const offY = (mouseY - cy) * 0.18;
+        shapeX += ((cx + offX) - shapeX) * 0.35;
+        shapeY += ((cy + offY) - shapeY) * 0.35;
+      } else {
+        shapeX += (mouseX - shapeX) * 0.22;
+        shapeY += (mouseY - shapeY) * 0.22;
+      }
+
+      shape.style.width = curW + 'px';
+      shape.style.height = curH + 'px';
+      // Use percentage of smaller side to keep border-radius proportional
+      if (targetR >= 50 - 0.5) {
+        shape.style.borderRadius = '50%';
+      } else {
+        shape.style.borderRadius = curR + 'px';
+      }
+      shape.style.left = shapeX + 'px';
+      shape.style.top = shapeY + 'px';
+
+      // Dot fades slightly when on a button-like element for cleaner look
+      dot.classList.toggle('faded', lockToEl);
+
+      requestAnimationFrame(tick);
+    }
+    tick();
+  })();
+</script>
+</body>
+</html>
